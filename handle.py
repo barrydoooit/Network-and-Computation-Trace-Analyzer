@@ -1,4 +1,34 @@
 import csv
+import pandas as pd
+
+def get_throughput_from_record(record):
+    df = pd.read_csv(record)
+    trps = df[["On Time/s", "Throughput(KBytes/s)"]]
+    time = 1
+    throughputs = []
+    basetime = float(trps.iloc[0]["On Time/s"])
+    sum = 0
+    count = 0
+    for i in range(1, len(trps.index)):
+        row = trps.iloc[i]
+        if float(row["On Time/s"]) - basetime < time:
+            sum += row["Throughput(KBytes/s)"]
+            count += 1
+        else:
+            print(count)
+            if count == 0:
+                print(throughputs)
+                if len(throughputs) > 0:
+                    throughputs.append(throughputs[-1])
+                else:
+                    throughputs.append(0)
+            else:
+                throughputs.append(sum / count)
+            sum = row["Throughput(KBytes/s)"]
+            count = 1
+            time += 1
+    return throughputs
+
 
 delay_half = 0
 length_half = 0
