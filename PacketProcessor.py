@@ -1,7 +1,11 @@
+#created by Yukuan DING, modified by Yanting LIU, Lai WEI
+#filter the pcapng traces using scapy
+#filter the RTT log given different status
 import scapy.all as scapy
 import pandas as pd
 from enum import Enum
 import numpy as np
+import os.path
 import matplotlib.pyplot as plt
 
 
@@ -61,6 +65,8 @@ class PacketProcessor(object):
                         break
         return df
 
+
+
     """def test_multiple_violin_plot(self, roblox, mc):
         X = ['Connecting', 'Waiting']
         X_axis = np.arange(len(X))
@@ -75,13 +81,33 @@ class PacketProcessor(object):
 
 
 if __name__ == "__main__":
-    pp = PacketProcessor()
-    filtered_df = pp.to_dataframe(pp.filter(), log_level=False)
-    rtts = pp.estimate_rtt(filtered_df)
-    plt.title("sample RTT when editing world")
-    plt.plot(rtts["time"], rtts["sample_rtt"])
-    plt.xlabel("time(s)")
-    plt.ylabel("Sample RTT (ms)")
-    plt.grid()
-    plt.show()
+    filtered_df = None
+    status_list = ['connect','fast_chunk_load','fast_chunk_reload',
+              'short_range_move','stan_still_with_creatures',
+              'stand_still']
+    cache_root = 'cache'
+    pcapng_root = 'caps'
+    for status in status_list:
+        cache_path = os.path.join(cache_root,status+'_rtt.csv')
+        print(cache_path)
+        pcapng_path = os.path.join(pcapng_root,status+'.pcapng')
+        print(pcapng_path)
+        if os.path.isfile(cache_path):
+            rtts = pd.read_csv(cache_path)
+        else:
+            pp = PacketProcessor(server_ip='222.187.232.216', server_port=11701,
+                 client_ip='192.168.65.174', client_port=64798, packets=pcapng_path,
+                 protocol='TCP')
+            filtered_df = pp.to_dataframe(pp.filter(), log_level=False)
+            filtered_df.to_csv(cache_path)
+            rtts = pp.estimate_rtt(filtered_df)
+            rtts.to_csv(cache_path)
+        plt.title("sample RTT when editing world")
+        plt.plot(rtts["time"], rtts["sample_rtt"])
+        plt.xlabel("time(s)")
+        plt.ylabel("Sample RTT (ms)")
+        plt.grid()
+        plt.savefig(status+".png")
+        plt.close()
+        #plt.show()
     # pp.test_violin_plot()
