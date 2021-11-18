@@ -154,9 +154,9 @@ class PacketProcessor(object):
 
 
 if __name__ == "__main__":
-    pp = PacketProcessor()
-    pp.parse_packet_len_count()
-    """filtered_df = None
+    #pp = PacketProcessor()
+    #pp.parse_packet_len_count()
+    filtered_df = None
     status_list = ['connect','fast_chunk_load','fast_chunk_reload',
               'short_range_move','stan_still_with_creatures',
               'stand_still']
@@ -181,6 +181,6 @@ if __name__ == "__main__":
         plt.ylabel("Sample RTT (ms)")
         plt.grid()
         plt.savefig(status+".png")
-        plt.close()"""
+        plt.close()
     # plt.show()
     # pp.test_violin_plot()
