@@ -138,7 +138,7 @@ if __name__ == "__main__":
     platform = "pc"
     status_list = ['FPS', 'Racing', 'RPG', 'Run']
     fig_root = "figs"
-    fig_name = "th_cdf_" + platform
+    fig_name = "th_bar_" + platform
     fig_path = os.path.join(fig_root,fig_name+".pdf")
     plt.rcParams['pdf.fonttype'] = 42
     plt.rcParams['hatch.linewidth'] = 3
