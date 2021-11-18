@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 filename = 'Output/output_mc_short_range_move.csv'
-packets = scapy.rdpcap('caps/short_range_move.pcapng')
+packets = scapy.rdpcap('raw_data/caps/short_range_move.pcapng')
 source = '222.187.232.216'
 host = '192.168.65.174'
 out_record = "Record/record_short_range_move.csv"
