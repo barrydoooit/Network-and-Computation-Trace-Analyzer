@@ -116,39 +116,80 @@ class PacketProcessor(object):
         return df
 
     def parse_packet_len_count(self, filtered_packets=None):
-        file_path = self.PROCESSED_DATA_ROOT + 'pkt_len_distribution/' + self.packets_path + '+pktld.csv'
-        if os.path.isfile(file_path):
-            df = pd.read_csv(file_path, index_col=0)
+        file_path_ingress = self.PROCESSED_DATA_ROOT + 'pkt_len_distribution/' + self.packets_path + '_pktld_ingress.csv'
+        file_path_egress = self.PROCESSED_DATA_ROOT + 'pkt_len_distribution/' + self.packets_path + '_pktld_egress.csv'
+        if os.path.isfile(file_path_ingress) and os.path.isfile(file_path_egress):
+            df_ingress = pd.read_csv(file_path_ingress, index_col=0)
+            df_egress = pd.read_csv(file_path_egress, index_col=0)
         else:
             if filtered_packets is None:
-                filtered_packets = self.filter()
-            max_pkt_size = filtered_packets.len.max()
-            min_pkt_size = filtered_packets[filtered_packets.len > 0].len.min()
-            idx_to_pkt_size = np.zeros(max_pkt_size + 1, dtype=int)
-            column_list = ["time"] + [str(i) for i in range(min_pkt_size, max_pkt_size + 1)]
-            df = pd.DataFrame(columns=column_list)
-            packet_count = np.zeros(max_pkt_size + 1, dtype=int)
-            time = 1
-            for _, row in filtered_packets.iterrows():
-                while time < row.time:
-                    new = [time] + packet_count[min_pkt_size:].tolist()
-                    df.loc[df.shape[0]] = new
-                    packet_count = np.zeros(max_pkt_size + 1, dtype=int)
-                    time += 1
+                filtered_packets = self.to_dataframe()
+            egress_pkts = filtered_packets[filtered_packets.role == 'Role.CLIENT']
+            ingress_pkts = filtered_packets[filtered_packets.role == 'Role.SERVER']
+            max_pkt_size_egress = egress_pkts.len.max()
+            min_pkt_size_egress = egress_pkts[egress_pkts.len > 0].len.min()
+            max_pkt_size_ingress = ingress_pkts.len.max()
+            min_pkt_size_ingress = ingress_pkts[ingress_pkts.len > 0].len.min()
+            print(max_pkt_size_egress)
+            idx_to_pkt_size_egress = np.zeros(max_pkt_size_egress + 1, dtype=int)
+            column_list_egress = ["time"] + [str(i) for i in range(min_pkt_size_egress, max_pkt_size_egress + 1)]
+            print("length is %d" % len(column_list_egress))
+            df_egress = pd.DataFrame(columns=column_list_egress)
+            packet_count_egress = np.zeros(max_pkt_size_egress + 1, dtype=int)
+            time_egress = 1
+            for _, row in egress_pkts.iterrows():
+                while time_egress < row.time:
+                    new = [time_egress] + packet_count_egress[min_pkt_size_egress:].tolist()
+                    df_egress.loc[df_egress.shape[0]] = new
+                    packet_count_egress = np.zeros(max_pkt_size_egress + 1, dtype=int)
+                    time_egress += 1
                 pkt_size = row.len
-                if idx_to_pkt_size[pkt_size] == 0:
-                    idx_to_pkt_size[pkt_size] = 1
-                packet_count[pkt_size] += 1
-            new = [time] + packet_count[min_pkt_size:].tolist()
-            df.loc[df.shape[0]] = new
-            df = df.drop(columns=[str(i) for i in range(min_pkt_size, max_pkt_size + 1) if idx_to_pkt_size[i] == 0])
-            df.to_csv(file_path)
-        return df
+                if idx_to_pkt_size_egress[pkt_size] == 0:
+                    idx_to_pkt_size_egress[pkt_size] = 1
+                packet_count_egress[pkt_size] += 1
+            df_egress.loc[df_egress.shape[0]] = [time_egress] + packet_count_egress[min_pkt_size_egress:].tolist()
+            df_egress = df_egress.drop(columns=[str(i) for i in range(min_pkt_size_egress, max_pkt_size_egress + 1) if idx_to_pkt_size_egress[i] == 0])
+            df_egress.to_csv(file_path_egress)
+
+            idx_to_pkt_size_ingress = np.zeros(max_pkt_size_ingress + 1, dtype=int)
+            column_list_ingress = ["time"] + [str(i) for i in range(min_pkt_size_ingress, max_pkt_size_ingress + 1)]
+            df_ingress = pd.DataFrame(columns=column_list_ingress)
+            packet_count_ingress = np.zeros(max_pkt_size_ingress + 1, dtype=int)
+            time_ingress = 1
+            for _, row in ingress_pkts.iterrows():
+                while time_ingress < row.time:
+                    new = [time_ingress] + packet_count_ingress[min_pkt_size_ingress:].tolist()
+                    df_ingress.loc[df_ingress.shape[0]] = new
+                    packet_count_ingress = np.zeros(max_pkt_size_ingress + 1, dtype=int)
+                    time_ingress += 1
+                pkt_size = row.len
+                if idx_to_pkt_size_ingress[pkt_size] == 0:
+                    idx_to_pkt_size_ingress[pkt_size] = 1
+                packet_count_ingress[pkt_size] += 1
+            df_ingress.loc[df_ingress.shape[0]] = [time_ingress] + packet_count_ingress[min_pkt_size_ingress:].tolist()
+            df_ingress = df_ingress.drop(columns=[str(i) for i in range(min_pkt_size_ingress, max_pkt_size_ingress + 1) if idx_to_pkt_size_ingress[i] == 0])
+            df_ingress.to_csv(file_path_ingress)
+        return df_egress, df_ingress
 
     def get_top_n_freq_packets(self, n=10):
-        print(self.parse_packet_len_count().drop(columns=['time']).info())
-        pkt_cnt_sum = self.parse_packet_len_count().drop(columns=['time']).sum(axis=0).to_frame().nlargest(n, 0)
-        return pkt_cnt_sum
+        df_egress, df_ingress = self.parse_packet_len_count()
+        pkt_cnt_sum_egress = df_egress.drop(columns=['time']).sum(axis=0).to_frame().nlargest(n, 0)
+        pkt_cnt_sum_ingress = df_ingress.drop(columns=['time']).sum(axis=0).to_frame().nlargest(n, 0)
+        return pkt_cnt_sum_egress, pkt_cnt_sum_ingress
+
+    def get_pkt_len_division_list(self, division_threshold=[0, 50, 100, 1000, 10000]):
+        df_egress, df_ingress = self.parse_packet_len_count()
+        df_grouped_egress = pd.DataFrame()
+        df_grouped_ingress = pd.DataFrame()
+        for i in range(1, len(division_threshold)):
+            df = df_egress.drop(columns=['time'])[[j for j in df_egress.drop(columns=['time']).columns.values
+                            if (int(j) <= division_threshold[i] and int(j) >division_threshold[i-1])]]
+            df_grouped_egress["%d-%d"%(division_threshold[i-1]+1, division_threshold[i])] = df.sum(axis=1)
+        for i in range(1, len(division_threshold)):
+            df = df_ingress.drop(columns=['time'])[[j for j in df_ingress.drop(columns=['time']).columns.values
+                            if (int(j) <= division_threshold[i] and int(j) >division_threshold[i-1])]]
+            df_grouped_ingress["%d-%d"%(division_threshold[i-1]+1, division_threshold[i])] = df.sum(axis=1)
+        return df_grouped_egress, df_grouped_ingress
 
     """def test_multiple_violin_plot(self, roblox, mc):
         X = ['Connecting', 'Waiting']
@@ -162,12 +203,27 @@ class PacketProcessor(object):
         #plt.legend()
         plt.show()"""
 
-    class PacketPlotter(object):
-        def __init__(self, processors=None):
-            if processors is None:
-                processors = []
-            self.processors = processors
+import seaborn as sns
+class PacketPlotter(object):
+    def __init__(self, processors=None):
+        if processors is None:
+            processors = []
+        self.processors = processors
 
+    def plt_pkt_len_breakup(self):
+        df_egress, df_ingress = self.processors[0].get_pkt_len_division_list()
+        df_egress.plot(kind='bar', stacked=True)
+        plt.title('Roblox '+self.processors[0].packets_path+' Packet Length Distribution - egress')
+        plt.xlabel("Time (s)")
+        plt.ylabel("Packet Count")
+        plt.show()
+
+        plt.figure(500)
+        df_ingress.plot(kind='bar', stacked=True)
+        plt.title('Roblox '+self.processors[0].packets_path+' Packet Length Distribution - ingress')
+        plt.xlabel("Time (s)")
+        plt.ylabel("Packet Count")
+        plt.show()
 if __name__ == "__main__":
     MC_PATH = 'minecraft_data/'
     pp = PacketProcessor(RAW_DATA_ROOT=MC_PATH+'raw_data/', PROCESSED_DATA_ROOT=MC_PATH+'processed_data/')
