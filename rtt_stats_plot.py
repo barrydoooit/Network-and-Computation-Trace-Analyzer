@@ -23,7 +23,7 @@ def draw_rtt_cdf(status_list,fig_path):
     # set up the tick size
     ax.tick_params(pad=18, labelsize=bsize - 2)
 
-    cache_root = 'cache'
+    cache_root = 'minecraft_data/processed_data/rtt'
     pcapng_root = 'caps'
     for status in status_list:
         cache_path = os.path.join(cache_root, status + '_rtt.csv')

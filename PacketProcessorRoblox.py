@@ -90,7 +90,7 @@ class PacketProcessor(object):
                 if row.role == Role.CLIENT and row.len > 0:
                     origin_pkt = row
                     for n_idx, n_row in filtered_packets.iloc[idx + 1: idx + 201, :].iterrows():
-                        if n_row.role == Role.SERVER and n_row.ack == origin_pkt.len + origin_pkt.seq:
+                        if n_row.role == Role.SERVER:
                             df.loc[len(df.index)] = [n_row.time, 0, (n_row.time - origin_pkt.time) * 1000]
                             break
             df.to_csv(file_path)
@@ -226,7 +226,7 @@ class PacketPlotter(object):
         plt.show()
 if __name__ == "__main__":
     MC_PATH = 'roblox_data/'
-    pp = PacketProcessor(RAW_DATA_ROOT=MC_PATH+'raw_data/', PROCESSED_DATA_ROOT=MC_PATH+'processed_data/')
+    pp = PacketProcessor(packets='connect',RAW_DATA_ROOT=MC_PATH+'raw_data/', PROCESSED_DATA_ROOT=MC_PATH+'processed_data/')
     pp.parse_sample_rtt()
     """filtered_df = None
     status_list = ['connect','fast_chunk_load','fast_chunk_reload',
