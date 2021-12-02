@@ -26,6 +26,11 @@ class PacketProcessor(object):
         self.client_port = client_port
         self.packets_path = packets
         self.protocol = protocol
+        """new_dirs = [RAW_DATA_ROOT+'filtered_caps', RAW_DATA_ROOT+'caps_csv',
+                    PROCESSED_DATA_ROOT+'throughput', PROCESSED_DATA_ROOT+'rtt']
+        for d in new_dirs:
+            if not os.path.exists(d):
+                os.mkdir(d)"""
 
 
 
@@ -51,28 +56,27 @@ class PacketProcessor(object):
             if packets is None:
                 packets = self.filter()
             start_time = packets[0].time if len(packets) > 0 else 0
-            print(start_time)
             if self.protocol == 'TCP':
                 df = pd.DataFrame(columns=["time", "src", "dst", "seq", "ack", "len", "payload", "role"])
                 start_seq = packets[0]['TCP'].seq - 1 if len(packets) > 0 else 0
                 start_ack = packets[0]['TCP'].ack - 1 if len(packets) > 0 else 0
-                start_side = Role.SERVER if packets[0]['TCP'].sport == self.server_port else Role.CLIENT
+                start_side = Role.SERVER.value if packets[0]['TCP'].sport == self.server_port else Role.CLIENT.value
                 for pkt in packets:
-                    role = Role.SERVER if pkt['TCP'].sport == self.server_port else Role.CLIENT
+                    role = Role.SERVER.value if pkt['TCP'].sport == self.server_port else Role.CLIENT.value
                     if log_level:
                         print([float(pkt.time) - start_time, pkt['IP'].src, pkt['IP'].dst,
                                pkt['TCP'].seq - (start_seq if role == start_side else start_ack),
                                pkt['TCP'].ack - (start_seq if role != start_side else start_ack),
-                               len(pkt['TCP'].payload), str(pkt['TCP'].payload), role])
-                    df.loc[len(df.index)] = [float(pkt.time) - start_time, pkt['IP'].src, pkt['IP'].dst,
+                               len(pkt), str(pkt['TCP'].payload), role])
+                    df.loc[len(df.index)] = [float(pkt.time - start_time), pkt['IP'].src, pkt['IP'].dst,
                                              pkt['TCP'].seq - (start_seq if role == start_side else start_ack),
                                              pkt['TCP'].ack - (start_seq if role != start_side else start_ack),
                                              len(pkt['TCP'].payload), pkt['TCP'].payload, role]
             elif self.protocol == 'UDP':
                 df = pd.DataFrame(columns=["time", "src", "dst", "len", "role"])
                 for pkt in packets:
-                    role = Role.SERVER if pkt['UDP'].sport == self.server_port else Role.CLIENT
-                    df.loc[len(df.index)] = [pkt.time - start_time, pkt['IP'].src, pkt['IP'].dst, len(pkt['UDP'].payload), role]
+                    role = Role.SERVER.value if pkt['UDP'].sport == self.server_port else Role.CLIENT.value
+                    df.loc[len(df.index)] = [pkt.time - start_time, pkt['IP'].src, pkt['IP'].dst, len(pkt), role]
             df.to_csv(file_path)
         if log_level:
             print(df.info())
@@ -87,33 +91,47 @@ class PacketProcessor(object):
                 filtered_packets = self.to_dataframe()
             df = pd.DataFrame(columns=["time", "estimated_rtt", "sample_rtt"])
             for idx, row in filtered_packets.iterrows():
-                if row.role == Role.CLIENT and row.len > 0:
+                if row.role == Role.CLIENT.value and row.len > 0:
                     origin_pkt = row
                     for n_idx, n_row in filtered_packets.iloc[idx + 1: idx + 201, :].iterrows():
-                        if n_row.role == Role.SERVER and n_row.ack == origin_pkt.len + origin_pkt.seq:
+                        if n_row.role == Role.SERVER.value and n_row.ack == origin_pkt.len + origin_pkt.seq:
                             df.loc[len(df.index)] = [n_row.time, 0, (n_row.time - origin_pkt.time) * 1000]
                             break
             df.to_csv(file_path)
         return df
 
-    def parse_throughput(self, filtered_packets=None):#UNTESTED
-        if filtered_packets is None:
-            filtered_packets = self.to_dataframe()
-        df = pd.DataFrame(columns=["time", "ingress", "egress"])
-        time = 1
-        ingress = 0
-        egress = 0
-        for _, row in filtered_packets.iterrows():
-            while time < row.time:
-                df.loc[len(df.index)] = [time, ingress, egress]
-                time += 1
-                ingress = 0
-                egress = 0
-            if row.role == Role.CLIENT:
-                ingress += row.len
-            else:
-                egress += row.len
+    def parse_throughput(self, interval=0.1, filtered_packets=None, suffix=''):
+        file_path = self.PROCESSED_DATA_ROOT + 'throughput/' + self.packets_path + suffix + '_throughput.csv'
+        if os.path.isfile(file_path):
+            df = pd.read_csv(file_path)
+        else:
+            if filtered_packets is None:
+                filtered_packets = self.to_dataframe()
+            df = pd.DataFrame(columns=["time", "ingress", "egress"])
+            time = interval
+            ingress = 0
+            egress = 0
+            for _, row in filtered_packets.iterrows():
+                while time < row.time:
+                    df.loc[len(df.index)] = [time, ingress, egress]
+                    time += interval
+                    ingress = 0
+                    egress = 0
+                if row.role == Role.CLIENT.value:
+                    ingress += row.len
+                else:
+                    egress += row.len
+            df.to_csv(file_path)
         return df
+
+    def clear_cache(self):
+        file_paths = [self.RAW_DATA_ROOT + 'caps_csv/' + self.packets_path + '.csv',
+                      self.RAW_DATA_ROOT + 'filtered_caps/' + self.packets_path + '.pcap',
+                      self.PROCESSED_DATA_ROOT + 'throughput/' + self.packets_path + '_UDP_throughput.csv',
+                      self.PROCESSED_DATA_ROOT + 'throughput/' + self.packets_path + '_TCP_throughput.csv']
+        for p in file_paths:
+            if os.path.isfile(p):
+                os.remove(p)
 
     def parse_packet_len_count(self, filtered_packets=None):
         file_path_ingress = self.PROCESSED_DATA_ROOT + 'pkt_len_distribution/' + self.packets_path + '_pktld_ingress.csv'
@@ -124,8 +142,8 @@ class PacketProcessor(object):
         else:
             if filtered_packets is None:
                 filtered_packets = self.to_dataframe()
-            egress_pkts = filtered_packets[filtered_packets.role == 'Role.CLIENT']
-            ingress_pkts = filtered_packets[filtered_packets.role == 'Role.SERVER']
+            egress_pkts = filtered_packets[filtered_packets.role == Role.CLIENT.value]
+            ingress_pkts = filtered_packets[filtered_packets.role == Role.SERVER.value]
             max_pkt_size_egress = egress_pkts.len.max()
             min_pkt_size_egress = egress_pkts[egress_pkts.len > 0].len.min()
             max_pkt_size_ingress = ingress_pkts.len.max()
