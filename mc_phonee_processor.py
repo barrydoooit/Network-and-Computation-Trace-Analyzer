@@ -44,7 +44,7 @@ if __name__=="__main__":
     output_name = "Phone.csv"
     input_path = os.path.join(input_root,input_name)
     output_path = os.path.join(output_root,output_name)
-    #compute_and_add_throughput(input_path,output_path)
-    output_root = "cache/rtt_roblox_vs_mc"
-    output_path = os.path.join(output_root, output_name)
-    compute_and_add_rtt(input_path, output_path)
+    compute_and_add_throughput(input_path,output_path)
+    #output_root = "cache/rtt_roblox_vs_mc"
+    #output_path = os.path.join(output_root, output_name)
+    #compute_and_add_rtt(input_path, output_path)

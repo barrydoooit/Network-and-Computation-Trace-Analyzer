@@ -65,7 +65,7 @@ def draw_th_cdf(status_list,fig_path):
     # set up the tick size
     ax.tick_params(pad=18, labelsize=bsize - 2)
 
-    cache_root = 'cache\\th_roblox_vs_mc_vs_vrchat'
+    cache_root = 'cache/th_phone_roblox_vs_mc'
     group = 0
     basics = []
     basics_var = []
@@ -130,7 +130,7 @@ def draw_th_cdf(status_list,fig_path):
     autolabel(rects_addition, ax)
     autolabel(rects_messaging, ax)
     ax.set_ylabel('Throughput(MB/s)', fontsize=asize)
-    plt.legend(loc='upper right', fontsize=asize - 10)
+    plt.legend(loc='upper left', fontsize=asize - 10)
     plt.savefig(fig_path)
     plt.show()
 
@@ -138,10 +138,9 @@ if __name__ == "__main__":
     platform = "pc"
     status_list = ['Roblox', 'Minecraft']
     fig_root = "figs"
-    fig_name = "th_bar_" + platform
+    fig_name = "th_bar_phone_roblox_vs_mc" + platform
     fig_path = os.path.join(fig_root,fig_name+".pdf")
     plt.rcParams['pdf.fonttype'] = 42
     plt.rcParams['hatch.linewidth'] = 3
     plt.rcParams["legend.handlelength"] = 1.0
     draw_th_cdf(status_list,fig_path)
-    # pp.test_violin_plot()

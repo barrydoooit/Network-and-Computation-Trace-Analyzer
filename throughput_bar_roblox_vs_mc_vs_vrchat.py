@@ -65,7 +65,7 @@ def draw_th_cdf(status_list,fig_path):
     # set up the tick size
     ax.tick_params(pad=18, labelsize=bsize - 2)
 
-    cache_root = 'cache\\th_roblox_vs_mc'
+    cache_root = 'cache/th_roblox_vs_mc_vs_vrchat'
     group = 0
     basics = []
     basics_var = []
@@ -102,7 +102,7 @@ def draw_th_cdf(status_list,fig_path):
                          yerr=basics_var,
                          color='none', edgecolor='black', linewidth=lwidth,
                          align='center', width=BarChartConfigs.bar_width)
-    basic_ticks = ['Roblox', 'Minecraft']
+    basic_ticks = ['Roblox', 'Minecraft', 'VRChat']
 
     addition_pos = np.arange(len(additions)) * BarChartConfigs.bar_interval + offset * 1
     rects_addition = ax.bar(addition_pos, additions, label='Addition Streaming', color='white',
@@ -136,7 +136,7 @@ def draw_th_cdf(status_list,fig_path):
 
 if __name__ == "__main__":
     platform = "pc"
-    status_list = ['Roblox', 'Minecraft']
+    status_list = ['Roblox', 'Minecraft', 'VRChat']
     fig_root = "figs"
     fig_name = "th_bar_" + platform
     fig_path = os.path.join(fig_root,fig_name+".pdf")

@@ -65,7 +65,7 @@ def draw_th_cdf(status_list,fig_path):
     # set up the tick size
     ax.tick_params(pad=18, labelsize=bsize - 2)
 
-    cache_root = 'cache\\th_roblox_vs_mc_vs_vrchat'
+    cache_root = 'cache/th_mc_pc_vs_phone'
     group = 0
     basics = []
     basics_var = []
@@ -102,7 +102,7 @@ def draw_th_cdf(status_list,fig_path):
                          yerr=basics_var,
                          color='none', edgecolor='black', linewidth=lwidth,
                          align='center', width=BarChartConfigs.bar_width)
-    basic_ticks = ['Roblox', 'Minecraft']
+    basic_ticks = ['PC', 'Phone']
 
     addition_pos = np.arange(len(additions)) * BarChartConfigs.bar_interval + offset * 1
     rects_addition = ax.bar(addition_pos, additions, label='Addition Streaming', color='white',
@@ -136,12 +136,11 @@ def draw_th_cdf(status_list,fig_path):
 
 if __name__ == "__main__":
     platform = "pc"
-    status_list = ['Roblox', 'Minecraft']
+    status_list = ['PC', 'Phone']
     fig_root = "figs"
-    fig_name = "th_bar_" + platform
+    fig_name = "th_bar_mc_pc_vs_phone" + platform
     fig_path = os.path.join(fig_root,fig_name+".pdf")
     plt.rcParams['pdf.fonttype'] = 42
     plt.rcParams['hatch.linewidth'] = 3
     plt.rcParams["legend.handlelength"] = 1.0
     draw_th_cdf(status_list,fig_path)
-    # pp.test_violin_plot()

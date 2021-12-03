@@ -65,7 +65,7 @@ def draw_th_cdf(status_list,fig_path):
     # set up the tick size
     ax.tick_params(pad=18, labelsize=bsize - 2)
 
-    cache_root = 'cache\\th'
+    cache_root = 'cache/th'
     group = 0
     basics = []
     basics_var = []
