@@ -225,7 +225,7 @@ class PacketPlotter(object):
         plt.ylabel("Packet Count")
         plt.show()
 if __name__ == "__main__":
-    MC_PATH = 'vrchat_data/20211202_01'
+    MC_PATH = '../data/network/vrchat_data/20211202_01'
     pp = PacketProcessor(packets='connect',RAW_DATA_ROOT=MC_PATH+'raw_data/', PROCESSED_DATA_ROOT=MC_PATH+'processed_data/')
     pp.parse_sample_rtt()
     """filtered_df = None

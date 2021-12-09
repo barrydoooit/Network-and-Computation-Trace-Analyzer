@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 
-path = "cache/th_roblox_vs_mc_vs_vrchat"
+path = "../cache/th_roblox_vs_mc_vs_vrchat"
 vrpath = path+"/VRChat_raw.csv"
 vrpatho = path+"/VRChat.csv"
 df = pd.read_csv(vrpath)
