@@ -1,6 +1,14 @@
-# Wireshark-Packet-Data-Visualizer
-#### PacketProcessor
-> Raw captures are parsed into filtered caps and csvs with this class. CSV for RTT, throughput, packet-length categorization are also temporarily generated here.
+# Network and Computation TraceAnalyzer
+
+#### Introduction
+> This repo is a pratical tool for analyzing network packet and computation logs.
 
 #### File Structure
-> Game designated files are temporarily under their diffrent folders. Raw data and processed data are divided into different directory, for detail please dive into the folders and check their names.
+###### data
+> Traces and processed data are in 'data' folder. Game designated files are temporarily under their diffrent folders. For network traces, raw data and processed data are divided into different directory, for detail please dive into the folders and check their names.
+
+###### mainTools
+> Main analysis and visualization tools.
+
+###### specificTools
+> Tools derived from mainTools that are suitable for specific application or tasks.
