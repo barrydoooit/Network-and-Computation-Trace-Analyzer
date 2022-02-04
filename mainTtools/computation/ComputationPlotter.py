@@ -47,7 +47,7 @@ def plot_cpu_usage_distribution(data_dir='20211209_First/', games=('vrchat', 'mi
         a.set_yticklabels("")
     axes[-1].legend(["0-%d%%" % percentiles[0]] + ["%d%%-%d%%" % (percentiles[i], percentiles[i + 1]) for i in
                                                    range(len(percentiles) - 1)], loc='upper right', fontsize=10)
-    plt.xlabel('Games')
+    axes[len(axes)//2].set_xlabel('Games')
     plt.show()
     fig.savefig("../../figs/"+"-".join(stages)+"-".join(games)+"cpu_usage_percentile_distribution.pdf")
     """def prep_df(df, name):
